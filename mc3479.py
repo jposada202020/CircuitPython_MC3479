@@ -32,7 +32,6 @@ from adafruit_register.i2c_struct import ROUnaryStruct
 try:
     from busio import I2C
     from typing_extensions import NoReturn
-    from typing import Tuple
 except ImportError:
     pass
 
@@ -43,6 +42,7 @@ _I2C_ADDR = const(0x4C)
 _REG_WHOAMI = const(0x98)
 
 # pylint: disable= invalid-name, too-many-instance-attributes, missing-function-docstring
+# pylint: disable=too-few-public-methods
 
 
 class MC3479:
@@ -80,7 +80,7 @@ class MC3479:
 
     _device_id = ROUnaryStruct(_REG_WHOAMI, "B")
 
-    def __init__(self, i2c_bus: I2C, address: int = _I2C_ADDR) -> None:
+    def __init__(self, i2c_bus: I2C, address: int = _I2C_ADDR) -> NoReturn:
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
 
         if self._device_id != 0xA4:
