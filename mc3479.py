@@ -45,6 +45,7 @@ _REG_WHOAMI = const(0x98)
 _SENSOR_STATUS_REG = const(0x05)
 _MODE_REG = const(0x07)
 _ACC_RANGE = const(0x20)
+_ACC_DATA_RATE = const(0x08)
 
 # Acceleration Data
 ACC_X_LSB = const(0x0D)
@@ -58,7 +59,7 @@ ACC_Z_MSB = const(0x12)
 STANDBY = const(0)
 NORMAL = const(1)
 
-# Aceleration Range
+# Acceleration Range
 ACCEL_RANGE_2G = const(0b000)
 ACCEL_RANGE_4G = const(0b001)
 ACCEL_RANGE_8G = const(0b010)
@@ -68,10 +69,10 @@ ACCEL_RANGE_12G = const(0b100)
 LPF_ENABLE = const(1)
 LPF_DISABLE = const(0)
 
-BANDWITH_1 = const(0b001)
-BANDWITH_2 = const(0b010)
-BANDWITH_3 = const(0b011)
-BANDWITH_5 = const(0b101)
+BANDWIDTH_1 = const(0b001)
+BANDWIDTH_2 = const(0b010)
+BANDWIDTH_3 = const(0b011)
+BANDWIDTH_5 = const(0b101)
 
 # pylint: disable= invalid-name, too-many-instance-attributes, missing-function-docstring
 # pylint: disable=too-few-public-methods
@@ -90,23 +91,23 @@ class MC3479:
     Here is an example of using the :class:`MC3479` class.
     First you will need to import the libraries to use the sensor
 
-        .. code-block:: python
+    .. code-block:: python
 
-            import board
-            import mc3479 as MC3479
+        import board
+        import mc3479 as MC3479
 
     Once this is done you can define your `board.I2C` object and define your sensor object
 
-        .. code-block:: python
+    .. code-block:: python
 
-            i2c = board.I2C()  # uses board.SCL and board.SDA
-            mc3479 = MC3479.MC3479(i2c)
+        i2c = board.I2C()  # Uses board.SCL and board.SDA
+        mc3479 = MC3479.MC3479(i2c)
 
     Now you have access to the attributes
 
-        .. code-block:: python
+    .. code-block:: python
 
-            accx, accy, accz = mc3479.acceleration
+        accx, accy, accz = mc3479.acceleration
 
     """
 
@@ -114,6 +115,7 @@ class MC3479:
     _status = UnaryStruct(_SENSOR_STATUS_REG, "B")
     _mode_reg = UnaryStruct(_MODE_REG, "B")
     _range_scale_control = UnaryStruct(_ACC_RANGE, "B")
+    _data_rate = UnaryStruct(_ACC_DATA_RATE, "B")
 
     # Acceleration Data
     _acc_data_x_msb = UnaryStruct(ACC_X_MSB, "B")
@@ -273,19 +275,19 @@ class MC3479:
     @property
     def lpf_setting(self) -> int:
         """
-        Selects the Bandwith for the Low Power Filter. Depends Also in the selection
+        Selects the Bandwidth for the Low Power Filter. Depends on the selection
         of the ODR/IDR
 
         +--------------------------------+------------------------------------+
         | Mode                           | Value                              |
         +================================+====================================+
-        | :py:const:`MC3479.BANDWITH_1`  | :py:const:`0b001` Fc = IDR / 4.255 |
+        | :py:const:`MC3479.BANDWIDTH_1` | :py:const:`0b001` Fc = IDR / 4.255 |
         +--------------------------------+------------------------------------+
-        | :py:const:`MC3479.BANDWITH_2`  | :py:const:`0b010` Fc = IDR / 6     |
+        | :py:const:`MC3479.BANDWIDTH_2` | :py:const:`0b010` Fc = IDR / 6     |
         +--------------------------------+------------------------------------+
-        | :py:const:`MC3479.BANDWITH_3`  | :py:const:`0b010` Fc = IDR / 12    |
+        | :py:const:`MC3479.BANDWIDTH_3` | :py:const:`0b010` Fc = IDR / 12    |
         +--------------------------------+------------------------------------+
-        | :py:const:`MC3479.BANDWITH_5`  | :py:const:`0b010` Fc = IDR / 16    |
+        | :py:const:`MC3479.BANDWIDTH_5` | :py:const:`0b010` Fc = IDR / 16    |
         +--------------------------------+------------------------------------+
 
         Example
@@ -296,7 +298,7 @@ class MC3479:
             i2c = board.I2C()
             mc3479 = MC3479.MC3479(i2c)
 
-            mc3479.alpf_setting = MC3479.BANDWITH_5
+            mc3479.lpf_setting = MC3479.BANDWIDTH_5
 
         """
         return self._acc_lpf_setting
@@ -305,4 +307,48 @@ class MC3479:
     def lpf_setting(self, value: int) -> NoReturn:
         self._mode = STANDBY
         self._acc_lpf_setting = value
+        self._mode = NORMAL
+
+    @property
+    def acceleration_output_data_rate(self) -> int:
+        """
+        Define the output data rate in Hz
+        The output data rate is dependent of the power mode setting for the sensor
+
+        +----------------------------------------+---------------------------------+
+        | Mode                                   | Value                           |
+        +========================================+=================================+
+        | :py:const:`MC3479.BANDWIDTH_25`        | :py:const:`0x10` 25 Hz          |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_50`        | :py:const:`0x11` 50 Hz          |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_62_5`      | :py:const:`0x12` 62.5 Hz        |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_100`       | :py:const:`0x13` 100 Hz         |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_125`       | :py:const:`0x14` 125 Hz         |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_250`       | :py:const:`0x15` 250 Hz         |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_500`       | :py:const:`0x16` 500 Hz         |
+        +----------------------------------------+---------------------------------+
+        | :py:const:`MC3479.BANDWIDTH_1000`      | :py:const:`0x17` 1000 Hz        |
+        +----------------------------------------+---------------------------------+
+
+        Example
+        ########
+
+        .. code-block:: python
+
+            i2c = board.I2C()
+            mc3479 = MC3479.MC3479(i2c)
+            mc3479.acceleration_output_data_rate = MC3479.BANDWIDTH_500
+
+        """
+        return self._data_rate
+
+    @acceleration_output_data_rate.setter
+    def acceleration_output_data_rate(self, value: int) -> NoReturn:
+        self._mode = STANDBY
+        self._data_rate = value
         self._mode = NORMAL
