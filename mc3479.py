@@ -74,6 +74,16 @@ BANDWIDTH_2 = const(0b010)
 BANDWIDTH_3 = const(0b011)
 BANDWIDTH_5 = const(0b101)
 
+# Acceleration Output Rate HZ
+BANDWIDTH_25 = const(0x10)  # 25 Hz
+BANDWIDTH_50 = const(0x11)  # 50 Hz
+BANDWIDTH_62_5 = const(0x12)  # 62.5 Hz
+BANDWIDTH_100 = const(0x13)  # 100 Hz
+BANDWIDTH_125 = const(0x14)  # 125 Hz
+BANDWIDTH_250 = const(0x15)  # 250 Hz
+BANDWIDTH_500 = const(0x16)  # 500 Hz
+BANDWIDTH_1000 = const(0x17)  # 1000 Hz
+
 # pylint: disable= invalid-name, too-many-instance-attributes, missing-function-docstring
 # pylint: disable=too-few-public-methods
 
