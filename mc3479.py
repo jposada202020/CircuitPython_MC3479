@@ -65,6 +65,14 @@ ACCEL_RANGE_8G = const(0b010)
 ACCEL_RANGE_16G = const(0b011)
 ACCEL_RANGE_12G = const(0b100)
 
+LPF_ENABLE = const(1)
+LPF_DISABLE = const(0)
+
+BANDWITH_1 = const(0b001)
+BANDWITH_2 = const(0b010)
+BANDWITH_3 = const(0b011)
+BANDWITH_5 = const(0b101)
+
 # pylint: disable= invalid-name, too-many-instance-attributes, missing-function-docstring
 # pylint: disable=too-few-public-methods
 
@@ -117,7 +125,10 @@ class MC3479:
 
     _mode = RWBits(2, _MODE_REG, 0)
 
+    # Acceleration Range Conf (0x20)
     _acc_range = RWBits(3, _ACC_RANGE, 4)
+    _acc_lpf_en = RWBits(1, _ACC_RANGE, 3)
+    _acc_lpf_setting = RWBits(3, _ACC_RANGE, 0)
 
     acceleration_scale = {0: 16384, 1: 8192, 2: 4096, 3: 2048, 4: 2730}
 
@@ -131,6 +142,15 @@ class MC3479:
 
     @property
     def acceleration(self) -> Tuple[int, int, int]:
+        """
+        The device has the ability to read all sampled readings
+        in a continuous sampling fashion. The device always updates
+        the XOUT, YOUT, and ZOUT registers at the chosen output data rate
+
+        X, Y, and Z-axis accelerometer measurements are in 16-bit, signed
+        2’s complement format. Register addresses 0x0D to 0x12 hold the
+        latest sampled data from the X, Y, and Z accelerometers.
+        """
 
         factor = self.acceleration_scale[self.acceleration_range]
 
@@ -142,6 +162,27 @@ class MC3479:
     @property
     def sensor_mode(self) -> int:
         """
+        Standby
+        ********
+
+        * Lowest power consumption
+        * Internal clocking is halted
+        * No motion detection, sampling, or calibration
+        * The I2C/SPI bus can read and write to registers (resolution, range, thresholds and other
+          settings can be changed)
+        * Reset not allowed
+        * Default state after a power-up
+
+
+        Normal
+        *******
+
+        * Highest power consumption
+        * Internal clocking is enabled
+        * Continuous motion detection and sampling; automatic calibration is available
+        * The I2C/SPI bus can only write to the mode register and read all other registers
+        * Reset allowed
+
 
         +----------------------------------------+-------------------------+
         | Mode                                   | Value                   |
@@ -161,6 +202,10 @@ class MC3479:
     @property
     def acceleration_range(self) -> int:
         """
+        The range and scale control register sets the resolution, range,
+        and filtering options for the accelerometer. All values are in
+        sign-extended 2’s complement format. Values are reported in
+        registers 0x0D – 0x12 (the hardware formats the output)
 
         +----------------------------------------+-------------------------+
         | Mode                                   | Value                   |
@@ -176,6 +221,15 @@ class MC3479:
         | :py:const:`MC3479.ACCEL_RANGE_12G`     | :py:const:`0b100`       |
         +----------------------------------------+-------------------------+
 
+        Example
+        ########
+
+        .. code-block:: python
+
+            i2c = board.I2C()
+            mc3479 = MC3479.MC3479(i2c)
+            mc3479.acceleration_range = MC3479.ACCEL_RANGE_12G
+
         """
         return self._acc_range
 
@@ -183,4 +237,72 @@ class MC3479:
     def acceleration_range(self, value: int) -> NoReturn:
         self._mode = STANDBY
         self._acc_range = value
+        self._mode = NORMAL
+
+    @property
+    def lpf_enabled(self) -> int:
+        """
+        Low Power Filter Enabler
+
+        +----------------------------------------+-------------------------+
+        | Mode                                   | Value                   |
+        +========================================+=========================+
+        | :py:const:`MC3479.LPF_ENABLE`          | :py:const:`0b0`         |
+        +----------------------------------------+-------------------------+
+        | :py:const:`MC3479.LPF_DISABLE`         | :py:const:`0b1`         |
+        +----------------------------------------+-------------------------+
+
+        Example
+        ---------------------
+
+        .. code-block:: python
+
+            i2c = board.I2C()
+            mc3479 = MC3479.MC3479(i2c)
+            mc3479.lpf_enabled = MC3479.LPF_ENABLE
+
+        """
+        return self._acc_lpf_en
+
+    @lpf_enabled.setter
+    def lpf_enabled(self, value: int) -> NoReturn:
+        self._mode = STANDBY
+        self._acc_lpf_en = value
+        self._mode = NORMAL
+
+    @property
+    def lpf_setting(self) -> int:
+        """
+        Selects the Bandwith for the Low Power Filter. Depends Also in the selection
+        of the ODR/IDR
+
+        +--------------------------------+------------------------------------+
+        | Mode                           | Value                              |
+        +================================+====================================+
+        | :py:const:`MC3479.BANDWITH_1`  | :py:const:`0b001` Fc = IDR / 4.255 |
+        +--------------------------------+------------------------------------+
+        | :py:const:`MC3479.BANDWITH_2`  | :py:const:`0b010` Fc = IDR / 6     |
+        +--------------------------------+------------------------------------+
+        | :py:const:`MC3479.BANDWITH_3`  | :py:const:`0b010` Fc = IDR / 12    |
+        +--------------------------------+------------------------------------+
+        | :py:const:`MC3479.BANDWITH_5`  | :py:const:`0b010` Fc = IDR / 16    |
+        +--------------------------------+------------------------------------+
+
+        Example
+        ---------------------
+
+        .. code-block:: python
+
+            i2c = board.I2C()
+            mc3479 = MC3479.MC3479(i2c)
+
+            mc3479.alpf_setting = MC3479.BANDWITH_5
+
+        """
+        return self._acc_lpf_setting
+
+    @lpf_setting.setter
+    def lpf_setting(self, value: int) -> NoReturn:
+        self._mode = STANDBY
+        self._acc_lpf_setting = value
         self._mode = NORMAL
