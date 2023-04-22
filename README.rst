@@ -10,6 +10,14 @@ Introduction
     :target: https://github.com/jposada202020/CircuitPython_MC3479/actions
     :alt: Build Status
 
+.. image:: https://img.shields.io/pypi/v/circuitpython-mc3479.svg
+    :alt: latest version on PyPI
+    :target: https://pypi.python.org/pypi/circuitpython-mc3479
+
+.. image:: https://static.pepy.tech/personalized-badge/circuitpython-mc3479?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Pypi%20Downloads
+    :alt: Total PyPI downloads
+    :target: https://pepy.tech/project/circuitpython-mc3479
+
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
