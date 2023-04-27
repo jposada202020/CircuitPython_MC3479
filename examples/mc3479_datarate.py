@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+import time
 import board
 import mc3479 as MC3479
 
@@ -9,13 +10,14 @@ import mc3479 as MC3479
 i2c = board.I2C()  # uses board.SCL and board.SDA
 mc3479 = MC3479.MC3479(i2c)
 
-print("Current Acceleration data rate", mc3479.acceleration_output_data_rate)
-print("Changing Acceleration data rate to 25 Hz")
-mc3479.acceleration_output_data_rate = MC3479.BANDWIDTH_25
-print("Changed Acceleration data rate", mc3479.acceleration_output_data_rate)
-print("Changing Acceleration data rate to 62.5 Hz")
-mc3479.acceleration_output_data_rate = MC3479.BANDWIDTH_62_5
-print("Changed Acceleration data rate", mc3479.acceleration_output_data_rate)
-print("Changing Acceleration data rate to 1000")
-mc3479.acceleration_output_data_rate = MC3479.BANDWIDTH_1000
-print("Changed Acceleration data rate", mc3479.acceleration_output_data_rate)
+while True:
+    for acc_rate in MC3479.accel_data_rate_values:
+        print(
+            "Current Acceleration Data Rate Setting: ",
+            mc3479.acceleration_output_data_rate,
+        )
+        for _ in range(10):
+            accx, accy, accz = mc3479.acceleration
+            print("x:{:.2f}m/s^2, y:{:.2f}m/s^2, z{:.2f}m.s^2".format(accx, accy, accz))
+            time.sleep(0.5)
+        mc3479.acceleration_output_data_rate = acc_rate

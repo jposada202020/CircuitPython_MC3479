@@ -24,3 +24,12 @@ Example showing how to change the acceleration data rate
 .. literalinclude:: ../examples/mc3479_datarate.py
     :caption: examples/mc3479_datarate.py
     :linenos:
+
+Low Pass Filter
+------------------------
+
+Example showing how to change the Low Pass Filter Setting
+
+.. literalinclude:: ../examples/mc3479_lpf.py
+    :caption: examples/mc3479_lpf.py
+    :linenos:

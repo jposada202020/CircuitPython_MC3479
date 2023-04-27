@@ -32,7 +32,6 @@ from adafruit_register.i2c_bits import RWBits
 
 try:
     from busio import I2C
-    from typing_extensions import NoReturn
     from typing import Tuple
 except ImportError:
     pass
@@ -58,6 +57,7 @@ ACC_Z_MSB = const(0x12)
 # Sensor Power
 STANDBY = const(0)
 NORMAL = const(1)
+power_values = (STANDBY, NORMAL)
 
 # Acceleration Range
 ACCEL_RANGE_2G = const(0b000)
@@ -65,6 +65,13 @@ ACCEL_RANGE_4G = const(0b001)
 ACCEL_RANGE_8G = const(0b010)
 ACCEL_RANGE_16G = const(0b011)
 ACCEL_RANGE_12G = const(0b100)
+accel_range_values = (
+    ACCEL_RANGE_2G,
+    ACCEL_RANGE_4G,
+    ACCEL_RANGE_8G,
+    ACCEL_RANGE_16G,
+    ACCEL_RANGE_12G,
+)
 
 LPF_ENABLE = const(1)
 LPF_DISABLE = const(0)
@@ -73,6 +80,7 @@ BANDWIDTH_1 = const(0b001)
 BANDWIDTH_2 = const(0b010)
 BANDWIDTH_3 = const(0b011)
 BANDWIDTH_5 = const(0b101)
+lpf_values = (BANDWIDTH_1, BANDWIDTH_2, BANDWIDTH_3, BANDWIDTH_5)
 
 # Acceleration Output Rate HZ
 BANDWIDTH_25 = const(0x10)  # 25 Hz
@@ -83,6 +91,16 @@ BANDWIDTH_125 = const(0x14)  # 125 Hz
 BANDWIDTH_250 = const(0x15)  # 250 Hz
 BANDWIDTH_500 = const(0x16)  # 500 Hz
 BANDWIDTH_1000 = const(0x17)  # 1000 Hz
+accel_data_rate_values = (
+    BANDWIDTH_25,
+    BANDWIDTH_50,
+    BANDWIDTH_62_5,
+    BANDWIDTH_100,
+    BANDWIDTH_125,
+    BANDWIDTH_250,
+    BANDWIDTH_500,
+    BANDWIDTH_1000,
+)
 
 # pylint: disable= invalid-name, too-many-instance-attributes, missing-function-docstring
 # pylint: disable=too-few-public-methods
@@ -142,7 +160,13 @@ class MC3479:
     _acc_lpf_en = RWBits(1, _ACC_RANGE, 3)
     _acc_lpf_setting = RWBits(3, _ACC_RANGE, 0)
 
-    acceleration_scale = {0: 16384, 1: 8192, 2: 4096, 3: 2048, 4: 2730}
+    acceleration_scale = {
+        "ACCEL_RANGE_2G": 16384,
+        "ACCEL_RANGE_4G": 8192,
+        "ACCEL_RANGE_8G": 4096,
+        "ACCEL_RANGE_16G": 2048,
+        "ACCEL_RANGE_12G": 2730,
+    }
 
     def __init__(self, i2c_bus: I2C, address: int = _I2C_ADDR) -> None:
         self.i2c_device = i2c_device.I2CDevice(i2c_bus, address)
@@ -165,14 +189,14 @@ class MC3479:
         """
 
         factor = self.acceleration_scale[self.acceleration_range]
-
         x = (self._acc_data_x_msb * 256 + self._acc_data_x_lsb) / factor
         y = (self._acc_data_y_msb * 256 + self._acc_data_y_lsb) / factor
         z = (self._acc_data_z_msb * 256 + self._acc_data_z_lsb) / factor
+
         return x, y, z
 
     @property
-    def sensor_mode(self) -> int:
+    def sensor_mode(self) -> str:
         """
         Standby
         ********
@@ -205,14 +229,17 @@ class MC3479:
         +----------------------------------------+-------------------------+
 
         """
-        return self._mode
+        values = ("STANDBY", "NORMAL")
+        return values[self._mode]
 
     @sensor_mode.setter
-    def sensor_mode(self, value: int) -> NoReturn:
+    def sensor_mode(self, value: int) -> None:
+        if value not in power_values:
+            raise ValueError("Value must be a valid Power Mode setting")
         self._mode = value
 
     @property
-    def acceleration_range(self) -> int:
+    def acceleration_range(self) -> str:
         """
         The range and scale control register sets the resolution, range,
         and filtering options for the accelerometer. All values are in
@@ -243,16 +270,26 @@ class MC3479:
             mc3479.acceleration_range = MC3479.ACCEL_RANGE_12G
 
         """
-        return self._acc_range
+        values = (
+            "ACCEL_RANGE_2G",
+            "ACCEL_RANGE_4G",
+            "ACCEL_RANGE_8G",
+            "ACCEL_RANGE_16G",
+            "ACCEL_RANGE_12G",
+        )
+
+        return values[self._acc_range]
 
     @acceleration_range.setter
-    def acceleration_range(self, value: int) -> NoReturn:
+    def acceleration_range(self, value: int) -> None:
+        if value not in accel_range_values:
+            raise ValueError("Value must be a valid acceleration range setting")
         self._mode = STANDBY
         self._acc_range = value
         self._mode = NORMAL
 
     @property
-    def lpf_enabled(self) -> int:
+    def lpf_enabled(self) -> str:
         """
         Low Power Filter Enabler
 
@@ -274,16 +311,19 @@ class MC3479:
             mc3479.lpf_enabled = MC3479.LPF_ENABLE
 
         """
-        return self._acc_lpf_en
+        values = ("LPF_ENABLE", "LPF_DISABLE")
+        return values[self._acc_lpf_en]
 
     @lpf_enabled.setter
-    def lpf_enabled(self, value: int) -> NoReturn:
+    def lpf_enabled(self, value: int) -> None:
+        if value not in (LPF_ENABLE, LPF_DISABLE):
+            raise ValueError("Value must be a valid LPF setting")
         self._mode = STANDBY
         self._acc_lpf_en = value
         self._mode = NORMAL
 
     @property
-    def lpf_setting(self) -> int:
+    def lpf_setting(self) -> str:
         """
         Selects the Bandwidth for the Low Power Filter. Depends on the selection
         of the ODR/IDR
@@ -295,9 +335,9 @@ class MC3479:
         +--------------------------------+------------------------------------+
         | :py:const:`MC3479.BANDWIDTH_2` | :py:const:`0b010` Fc = IDR / 6     |
         +--------------------------------+------------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_3` | :py:const:`0b010` Fc = IDR / 12    |
+        | :py:const:`MC3479.BANDWIDTH_3` | :py:const:`0b011` Fc = IDR / 12    |
         +--------------------------------+------------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_5` | :py:const:`0b010` Fc = IDR / 16    |
+        | :py:const:`MC3479.BANDWIDTH_5` | :py:const:`0b101` Fc = IDR / 16    |
         +--------------------------------+------------------------------------+
 
         Example
@@ -311,16 +351,25 @@ class MC3479:
             mc3479.lpf_setting = MC3479.BANDWIDTH_5
 
         """
-        return self._acc_lpf_setting
+        values = {
+            1: "BANDWIDTH_1",
+            2: "BANDWIDTH_2",
+            3: "BANDWIDTH_3",
+            5: "BANDWIDTH_5",
+        }
+
+        return values[self._acc_lpf_setting]
 
     @lpf_setting.setter
-    def lpf_setting(self, value: int) -> NoReturn:
+    def lpf_setting(self, value: int) -> None:
+        if value not in lpf_values:
+            raise ValueError("Value must be a valid acceleration data rate setting")
         self._mode = STANDBY
         self._acc_lpf_setting = value
         self._mode = NORMAL
 
     @property
-    def acceleration_output_data_rate(self) -> int:
+    def acceleration_output_data_rate(self) -> str:
         """
         Define the output data rate in Hz
         The output data rate is dependent of the power mode setting for the sensor
@@ -355,10 +404,24 @@ class MC3479:
             mc3479.acceleration_output_data_rate = MC3479.BANDWIDTH_500
 
         """
-        return self._data_rate
+
+        values = {
+            0x10: "BANDWIDTH_25",
+            0x11: "BANDWIDTH_50",
+            0x12: "BANDWIDTH_62_5",
+            0x13: "BANDWIDTH_100",
+            0x14: "BANDWIDTH_125",
+            0x15: "BANDWIDTH_250",
+            0x16: "BANDWIDTH_500",
+            0x17: "BANDWIDTH_1000",
+        }
+
+        return values[self._data_rate]
 
     @acceleration_output_data_rate.setter
-    def acceleration_output_data_rate(self, value: int) -> NoReturn:
+    def acceleration_output_data_rate(self, value: int) -> None:
+        if value not in accel_data_rate_values:
+            raise ValueError("Value must be a valid acceleration data rate setting")
         self._mode = STANDBY
         self._data_rate = value
         self._mode = NORMAL
