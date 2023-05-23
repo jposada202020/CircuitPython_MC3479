@@ -90,10 +90,3 @@ Usage Example
 =============
 
 Take a quick look to the examples folder
-
-Contributing
-============
-
-Contributions are welcome! Please read our `Code of Conduct
-<https://github.com/jposada202020/CircuitPython_MC3479/blob/HEAD/CODE_OF_CONDUCT.md>`_
-before contributing to help this project stay welcoming.
