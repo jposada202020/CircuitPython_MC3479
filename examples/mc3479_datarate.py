@@ -11,7 +11,7 @@ i2c = board.I2C()  # uses board.SCL and board.SDA
 mc3479 = MC3479.MC3479(i2c)
 
 while True:
-    for acc_rate in MC3479.accel_data_rate_values:
+    for acc_rate in MC3479.acceleration_output_data_rate_values:
         print(
             "Current Acceleration Data Rate Setting: ",
             mc3479.acceleration_output_data_rate,

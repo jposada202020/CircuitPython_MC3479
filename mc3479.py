@@ -83,23 +83,23 @@ BANDWIDTH_5 = const(0b101)
 lpf_values = (BANDWIDTH_1, BANDWIDTH_2, BANDWIDTH_3, BANDWIDTH_5)
 
 # Acceleration Output Rate HZ
-BANDWIDTH_25 = const(0x10)  # 25 Hz
-BANDWIDTH_50 = const(0x11)  # 50 Hz
-BANDWIDTH_62_5 = const(0x12)  # 62.5 Hz
-BANDWIDTH_100 = const(0x13)  # 100 Hz
-BANDWIDTH_125 = const(0x14)  # 125 Hz
-BANDWIDTH_250 = const(0x15)  # 250 Hz
-BANDWIDTH_500 = const(0x16)  # 500 Hz
-BANDWIDTH_1000 = const(0x17)  # 1000 Hz
-accel_data_rate_values = (
-    BANDWIDTH_25,
+BANDWIDTH_50 = const(0x08)  # 50 Hz
+BANDWIDTH_100 = const(0x09)  # 100 Hz
+BANDWIDTH_125 = const(0xA)  # 125 Hz
+BANDWIDTH_200 = const(0xB)  # 200 Hz
+BANDWIDTH_250 = const(0xC)  # 250 Hz
+BANDWIDTH_500 = const(0xD)  # 500 Hz
+BANDWIDTH_1000 = const(0xE)  # 1000 Hz
+BANDWIDTH_2000 = const(0xF)  # 2000 Hz
+acceleration_output_data_rate_values = (
     BANDWIDTH_50,
-    BANDWIDTH_62_5,
     BANDWIDTH_100,
     BANDWIDTH_125,
+    BANDWIDTH_200,
     BANDWIDTH_250,
     BANDWIDTH_500,
     BANDWIDTH_1000,
+    BANDWIDTH_2000,
 )
 
 
@@ -375,22 +375,23 @@ class MC3479:
         +----------------------------------------+---------------------------------+
         | Mode                                   | Value                           |
         +========================================+=================================+
-        | :py:const:`MC3479.BANDWIDTH_25`        | :py:const:`0x10` 25 Hz          |
+        | :py:const:`MC3479.BANDWIDTH_50`        | :py:const:`0x08` 50 Hz          |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_50`        | :py:const:`0x11` 50 Hz          |
+        | :py:const:`MC3479.BANDWIDTH_100`       | :py:const:`0x09` 100 Hz         |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_62_5`      | :py:const:`0x12` 62.5 Hz        |
+        | :py:const:`MC3479.BANDWIDTH_125`       | :py:const:`0xA` 125 Hz          |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_100`       | :py:const:`0x13` 100 Hz         |
+        | :py:const:`MC3479.BANDWIDTH_200`       | :py:const:`0xB` 200 Hz          |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_125`       | :py:const:`0x14` 125 Hz         |
+        | :py:const:`MC3479.BANDWIDTH_250`       | :py:const:`0xC` 250 Hz          |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_250`       | :py:const:`0x15` 250 Hz         |
+        | :py:const:`MC3479.BANDWIDTH_500`       | :py:const:`0xD` 500 Hz          |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_500`       | :py:const:`0x16` 500 Hz         |
+        | :py:const:`MC3479.BANDWIDTH_1000`      | :py:const:`0xE` 1000 Hz         |
         +----------------------------------------+---------------------------------+
-        | :py:const:`MC3479.BANDWIDTH_1000`      | :py:const:`0x17` 1000 Hz        |
+        | :py:const:`MC3479.BANDWIDTH_2000`      | :py:const:`0xF` 2000 Hz         |
         +----------------------------------------+---------------------------------+
+
 
         Example
         ########
@@ -404,21 +405,21 @@ class MC3479:
         """
 
         values = {
-            0x10: "BANDWIDTH_25",
-            0x11: "BANDWIDTH_50",
-            0x12: "BANDWIDTH_62_5",
-            0x13: "BANDWIDTH_100",
-            0x14: "BANDWIDTH_125",
-            0x15: "BANDWIDTH_250",
-            0x16: "BANDWIDTH_500",
-            0x17: "BANDWIDTH_1000",
+            0x08: "BANDWIDTH_50",
+            0x09: "BANDWIDTH_100",
+            0xA: "BANDWIDTH_125",
+            0xB: "BANDWIDTH_200",
+            0xC: "BANDWIDTH_250",
+            0xD: "BANDWIDTH_500",
+            0xE: "BANDWIDTH_1000",
+            0xF: "BANDWIDTH_2000",
         }
 
         return values[self._data_rate]
 
     @acceleration_output_data_rate.setter
     def acceleration_output_data_rate(self, value: int) -> None:
-        if value not in accel_data_rate_values:
+        if value not in acceleration_output_data_rate_values:
             raise ValueError("Value must be a valid acceleration data rate setting")
         self._mode = STANDBY
         self._data_rate = value
