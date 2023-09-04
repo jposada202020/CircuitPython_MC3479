@@ -8,7 +8,7 @@
 MC3479 Accelerometer Driver
 
 
-* Author(s): Jose D. Montoya
+* Author: Jose D. Montoya
 
 Implementation Notes
 --------------------
@@ -102,9 +102,6 @@ accel_data_rate_values = (
     BANDWIDTH_1000,
 )
 
-# pylint: disable= invalid-name, too-many-instance-attributes, missing-function-docstring
-# pylint: disable=too-few-public-methods
-
 
 class MC3479:
     """Driver for the MC3479 Sensor connected over I2C.
@@ -177,18 +174,19 @@ class MC3479:
         self._mode = NORMAL
 
     @property
-    def acceleration(self) -> Tuple[int, int, int]:
+    def acceleration(self) -> Tuple[float, float, float]:
         """
         The device has the ability to read all sampled readings
         in a continuous sampling fashion. The device always updates
         the XOUT, YOUT, and ZOUT registers at the chosen output data rate
 
         X, Y, and Z-axis accelerometer measurements are in 16-bit, signed
-        2’s complement format. Register addresses 0x0D to 0x12 hold the
+        2's complement format. Register addresses 0x0D to 0x12 hold the
         latest sampled data from the X, Y, and Z accelerometers.
         """
 
         factor = self.acceleration_scale[self.acceleration_range]
+
         x = (self._acc_data_x_msb * 256 + self._acc_data_x_lsb) / factor
         y = (self._acc_data_y_msb * 256 + self._acc_data_y_lsb) / factor
         z = (self._acc_data_z_msb * 256 + self._acc_data_z_lsb) / factor
@@ -243,8 +241,8 @@ class MC3479:
         """
         The range and scale control register sets the resolution, range,
         and filtering options for the accelerometer. All values are in
-        sign-extended 2’s complement format. Values are reported in
-        registers 0x0D – 0x12 (the hardware formats the output)
+        sign-extended 2's complement format. Values are reported in
+        registers 0x0D - 0x12 (the hardware formats the output)
 
         +----------------------------------------+-------------------------+
         | Mode                                   | Value                   |
